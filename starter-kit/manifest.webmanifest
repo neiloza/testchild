@@ -1,0 +1,20 @@
+{
+  "name": "__APP_NAME__ — __APP_TAGLINE__",
+  "short_name": "__APP_SHORT_NAME__",
+  "description": "__APP_DESCRIPTION__",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "__THEME_COLOR__",
+  "theme_color": "__THEME_COLOR__",
+  "categories": ["utilities"],
+  "icons": [
+    { "src": "icons/icon-192.png", "type": "image/png", "sizes": "192x192" },
+    { "src": "icons/icon-512.png", "type": "image/png", "sizes": "512x512" },
+    { "src": "icons/icon-1024.png", "type": "image/png", "sizes": "1024x1024" },
+    { "src": "icons/icon-192-maskable.png", "type": "image/png", "sizes": "192x192", "purpose": "maskable" },
+    { "src": "icons/icon-512-maskable.png", "type": "image/png", "sizes": "512x512", "purpose": "maskable" },
+    { "src": "icons/favicon.svg", "type": "image/svg+xml", "sizes": "any" }
+  ]
+}

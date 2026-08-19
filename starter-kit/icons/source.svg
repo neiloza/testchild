@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Replace this with the app's mark. 512x512, drawn full-bleed, no alpha.
+       Keep anything meaningful inside the centre 80% so the maskable crop
+       never clips it. -->
+  <circle cx="256" cy="256" r="150" fill="#ffffff"/>
+  <path d="M256 176 l24 56 60 5 -46 39 14 59 -52 -32 -52 32 14 -59 -46 -39 60 -5z" fill="#16161a"/>
+</svg>

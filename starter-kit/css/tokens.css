@@ -1,0 +1,98 @@
+/* ============================================================================
+ * tokens.css — the palette contract.
+ *
+ * This is the ONE file you rewrite when you retheme an app. Everything else
+ * in the kit consumes these names and never hard-codes a colour, a radius or
+ * a shadow. Keep the names; change the values.
+ *
+ * Name tokens by ROLE, not by hue, wherever the role can outlive the colour.
+ * `--accent` is "the thing you press", not "the blue one" — so when the blue
+ * becomes near-black the name still tells the truth.
+ *
+ * Keep the brand-weight palette small: one accent, one surface ramp, one ink
+ * ramp. Red and green are semantic (yes/no, win/lose, safe/destructive) and
+ * never carry brand weight. A palette with fifteen equal colours means
+ * nothing.
+ *
+ * When a value is non-obvious — a colour that has to sit in a narrow band to
+ * read correctly, two tokens that must move together — write the paragraph
+ * here. That comment is what stops a future session "tidying" it back into a
+ * bug.
+ * ========================================================================= */
+
+:root {
+  /* --- surfaces: the ramp from page, to raised card, to sunken well ------ */
+  --bg:            #fbfbfa;
+  --bg-raised:     #ffffff;
+  --bg-sunken:     #f0f0ed;
+
+  /* --- ink: the ramp from body copy, to secondary, to barely-there ------- */
+  --ink:           #101012;
+  --ink-soft:      #46464b;
+  --ink-faint:     #74747a;
+
+  /* --- accent: the ink you press ---------------------------------------- */
+  --accent:          #16161a;
+  --accent-soft:     #33333a;
+  --accent-contrast: #ffffff;   /* text ON accent */
+
+  /* --- structure --------------------------------------------------------- */
+  --line:          #e4e4e1;
+  --line-strong:   #c9c9c6;
+
+  /* --- semantic only. Never brand. -------------------------------------- */
+  --good:          #2c6349;
+  --good-bg:       #e6efea;
+  --bad:           #8f3237;
+  --bad-bg:        #f6e9e9;
+
+  /* --- shape ------------------------------------------------------------- */
+  --radius:        16px;
+  --radius-sm:     12px;
+  --radius-pill:   999px;
+
+  --shadow-sm: 0 1px 2px rgb(16 16 18 / 0.05);
+  --shadow-md: 0 2px 6px rgb(16 16 18 / 0.06), 0 10px 24px -12px rgb(16 16 18 / 0.14);
+  --shadow-lg: 0 6px 16px rgb(16 16 18 / 0.10), 0 20px 44px -16px rgb(16 16 18 / 0.20);
+
+  /* --- type --------------------------------------------------------------
+   * System stack by default: it costs no request, never flashes, and already
+   * looks native on the device it is running on. Swap --font-display for a
+   * webfont only when the typeface is doing identity work. If you do,
+   * preconnect to both font origins in <head> — it is the only third-party
+   * request these apps are allowed to make.
+   */
+  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-display: ui-rounded, "SF Pro Rounded", var(--font-body);
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* --- safe areas --------------------------------------------------------
+   * Behind variables so every anchored element derives from ONE number, and
+   * so you can fake a notched device in a desktop browser while testing by
+   * overriding these two in devtools.
+   *
+   * NOTE: --safe-b is the iOS home indicator, NOT a browser URL bar. In a
+   * standalone PWA there is no URL bar, so nothing should ever pad on top of
+   * this value "just in case".
+   */
+  --safe-t: env(safe-area-inset-top, 0px);
+  --safe-b: env(safe-area-inset-bottom, 0px);
+
+  /* --- chrome heights, so content can clear them ------------------------ */
+  --topbar-h: 56px;
+  --tabbar-h: 58px;
+}
+
+/* ---------------------------------------------------------------------------
+ * Multi-theme, if the app wants it: redefine the SAME token names under a
+ * [data-theme] block and apply the attribute from an inline <script> in
+ * <head>, before first paint, so there is no flash. See index.html.
+ * -------------------------------------------------------------------------
+ *
+ * [data-theme="night"] {
+ *   --bg: #15131c;  --bg-raised: #1f1c2c;  --bg-sunken: #0e0c14;
+ *   --ink: #efe6d6; --ink-soft: #b3adc0;   --ink-faint: #837e93;
+ *   --line: #3a334a; --line-strong: #4d4560;
+ *   --accent: #e6c460; --accent-contrast: #15131c;
+ * }
+ */

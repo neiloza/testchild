@@ -1,0 +1,100 @@
+# __APP_NAME__ — development notes
+
+This file is for sessions picking up work on __APP_NAME__. Read
+[`README.md`](./README.md) first for the app's mission — this file tracks
+*where development actually stands*.
+
+## Current status (as of YYYY-MM-DD)
+
+<!-- What is built and working. Be specific enough that a fresh session can
+     tell what it does NOT have to rebuild. -->
+
+## Open issues
+
+<!-- Known-broken, known-missing, and known-dubious. Each one: what is wrong,
+     why it matters, and what the fix would look like. An issue with no
+     consequence stated gets deprioritised forever. -->
+
+## What to do next
+
+<!-- Ordered by leverage — the top of the list unlocks the most for the least
+     effort. -->
+
+1.
+2.
+3.
+
+## Waiting on a human
+
+<!-- Everything blocked on something an agent cannot do from a sandbox: a
+     credential, a file that needs downloading, a judgement call, a check
+     against the real world. Nothing in this list is waiting on code.
+     This section is the single highest-value part of the file. -->
+
+- [ ]
+
+## File map
+
+<!-- Every file that matters, one line each, saying what it owns. This is
+     what a fresh session reads instead of grepping. -->
+
+| File | Owns |
+|---|---|
+| `index.html` | Shell: head tags, topbar, views, tabbar, sheets |
+| `css/tokens.css` | The palette. Retheming happens here and nowhere else. |
+| `css/base.css` | Reset, safe areas, dvh, motion, focus |
+| `css/components.css` | Shared shell vocabulary |
+| `js/app.js` | App entry, wiring |
+| `js/store.js` | Persistence: `__APP_SLUG__:v1`, migrations |
+| `js/install.js` | Add-to-home-screen decision table + sheet |
+| `js/ui.js` | View switching, sheets, toasts |
+| `sw.js` | Service worker (network-first) |
+| `icons/build-icons.js` | One SVG in, the full icon set out |
+
+## Invariants — do not break these
+
+<!-- The things that will silently corrupt data or break a platform if
+     someone "cleans them up". Write the reason, not just the rule. -->
+
+- **State key is `__APP_SLUG__:v1`.** Bump the version AND add a migration in
+  `store.js` if the shape changes incompatibly. Deleting an old migration
+  strands anyone who has not opened the app since — which, with no backup,
+  means losing their data permanently.
+- **Icons are generated, never hand-edited.** Change `icons/source.svg` and
+  re-run `node icons/build-icons.js`. The builder byte-verifies that every
+  PNG came out fully opaque and refuses to write one that did not — an icon
+  with alpha reaches a home screen as a clipped mark or a see-through tile.
+  *(If the icons are still the kit's placeholder star, that is the first job.)*
+- **Do not add large assets to the service worker's SHELL list.** They are
+  cached on first real use anyway; in the shell, every install pays for them.
+- **Every `:hover` rule stays inside `@media (hover: hover)`.** iOS Safari
+  sticks `:hover` to the last-tapped element, so the next element rendered
+  into that slot inherits a highlight it never earned.
+
+## Conventions
+
+- No build step, no framework, no bundler. Plain HTML/CSS/JS served as files.
+- No third-party runtime services: no analytics, no tag managers, no error
+  reporting SaaS, no ads.
+- Comments explain *why*. If a future session could plausibly "clean this up"
+  and reintroduce a bug, write the paragraph.
+
+## Testing
+
+<!-- Serve the folder and drive it with Playwright:
+       python3 -m http.server 8137
+     Chromium is at /opt/pw-browsers/chromium in the agent sandbox; do not run
+     `playwright install`.
+
+     Checks that catch real bugs:
+     - Visual at 390x844, deviceScaleFactor 2 — and again at 375x667, since
+       tall content overlaps the fixed tab bar if a scroll area is missing
+       overflow-y.
+     - State machine: dispatch visibilitychange / blur / focus / pagehide.
+     - Reload with a populated localStorage to exercise migrations. -->
+
+## Deploy
+
+Cloudflare Pages → `__APP_SLUG__.<domain>`. Framework preset **None**, build
+command empty, output directory `/`. DNS stays at the registrar; adding the
+subdomain is one CNAME and touches nothing else on the domain.

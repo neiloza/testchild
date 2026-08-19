@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <!-- viewport-fit=cover: the page paints UNDER the status bar and home
+       indicator, and CSS reserves those strips with env(safe-area-inset-*).
+       Without it you get letterboxing on a notched phone. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="__APP_DESCRIPTION__">
+  <!-- Matches the very top of the app background, so iOS tints the status
+       bar strip the same colour as the page. -->
+  <meta name="theme-color" content="__THEME_COLOR__">
+
+  <title>__APP_NAME__</title>
+
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icons/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+
+  <!-- iOS ignores most of the manifest and wants its own tags. Without
+       `capable`, tapping the home-screen icon opens an ordinary Safari tab
+       with the address bar still there — which is the entire thing an
+       install is for. -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <!-- `default` lets iOS tint the status bar with theme-color above and pick
+       dark, legible glyphs. `black-translucent` forces WHITE glyphs, which
+       needs a dark band behind them — use it only for a dark-themed app. -->
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="__APP_SHORT_NAME__">
+  <meta name="format-detection" content="telephone=no">
+
+  <link rel="stylesheet" href="./css/tokens.css">
+  <link rel="stylesheet" href="./css/base.css">
+  <link rel="stylesheet" href="./css/components.css">
+
+  <!-- Theme applied before first paint, so a themed app never flashes the
+       default palette. Delete this block if the app has one theme. -->
+  <script>
+    (function () {
+      try {
+        var raw = localStorage.getItem("__APP_SLUG__:v1");
+        if (!raw) return;
+        var data = JSON.parse(raw);
+        var allowed = ["night"];
+        if (data && data.settings && allowed.indexOf(data.settings.theme) >= 0) {
+          document.documentElement.setAttribute("data-theme", data.settings.theme);
+        }
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-icon" aria-hidden="true">✨</span>
+      <span class="brand-name">__APP_NAME__</span>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost install-btn hidden" id="install-btn"
+              aria-label="Add __APP_NAME__ to your home screen">
+        <span class="install-btn-icon" aria-hidden="true">⬇</span>
+        <span class="install-btn-label">Install</span>
+      </button>
+      <button class="icon-btn" id="help-btn" aria-label="How it works">?</button>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- ===== HOME ===== -->
+    <section class="view active" id="view-home">
+      <div class="panel">
+        <h2 class="panel-head">__APP_NAME__</h2>
+        <p class="panel-sub">__APP_DESCRIPTION__</p>
+      </div>
+    </section>
+
+    <!-- ===== LIBRARY ===== -->
+    <section class="view" id="view-library">
+      <div class="empty-state">
+        <p class="empty-title">Nothing here yet.</p>
+        <p class="empty-sub">What you save will show up here.</p>
+      </div>
+    </section>
+
+    <!-- ===== SETTINGS ===== -->
+    <section class="view" id="view-settings">
+      <div class="panel">
+        <h2 class="panel-head">Settings</h2>
+      </div>
+    </section>
+
+  </main>
+
+  <nav class="tabbar" id="tabbar" aria-label="Main">
+    <div class="tabbar-inner">
+      <button class="tab active" data-view="home" aria-current="page">
+        <span class="tab-icon" aria-hidden="true">✨</span>
+        <span class="tab-label">Home</span>
+      </button>
+      <button class="tab" data-view="library">
+        <span class="tab-icon" aria-hidden="true">⭐</span>
+        <span class="tab-label">Library</span>
+      </button>
+      <button class="tab" data-view="settings">
+        <span class="tab-icon" aria-hidden="true">⚙️</span>
+        <span class="tab-label">Settings</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ===== install sheet ===== -->
+  <div class="overlay" id="install-overlay" role="dialog" aria-modal="true"
+       aria-labelledby="install-title" hidden>
+    <div class="overlay-backdrop" data-install-close data-sheet-close></div>
+    <div class="sheet">
+      <div class="sheet-head">
+        <h2 class="sheet-title" id="install-title">Add to Home Screen</h2>
+        <button class="icon-btn" id="install-close" data-install-close data-sheet-close
+                aria-label="Close">✕</button>
+      </div>
+      <div class="sheet-body" id="install-body"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
