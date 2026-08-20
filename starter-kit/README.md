@@ -9,7 +9,9 @@ it, and you are past all the plumbing.
 ```bash
 starter-kit/scripts/new-app.sh ../myapp "My App" myapp "#16161a" "MyApp"
 cd ../myapp
-python3 -m http.server 8000
+npm install     # dev tools only — nothing ships to the browser
+npm test        # 22 shell checks, all green on a fresh scaffold
+npm run serve   # http://localhost:8000
 ```
 
 That rewrites the app name, short name, storage namespace and theme colour
@@ -32,6 +34,9 @@ offline out of the box.
 | `js/ui.js` | View switching, sheets, toasts |
 | `js/app.js` | Where your app actually starts |
 | `icons/build-icons.js` | One SVG in → the full icon set out |
+| `test/smoke.mjs` | Shell regression test — serves the app itself, no setup |
+| `package.json` | Dev-only. Pins the test runner and icon builder; no runtime deps |
+| `README.md.template` | Mission + architecture skeleton |
 | `CLAUDE.md.template` | The operating-manual skeleton |
 
 ## Order of work on a new app
@@ -64,3 +69,26 @@ offline out of the box.
 - **System font stack.** `--font-display` is the hook if the app needs a
   typeface doing identity work. A webfont is the only third-party request
   these apps make, so make it earn its place.
+- **ES modules, not `<script>` tags.** Files declare what they need, so
+  reordering cannot break the app. Still no build step — but the page must be
+  served over http, so you can no longer just double-click `index.html`.
+- **A dev-only `package.json`.** No runtime dependencies and no build step;
+  it exists so the test runner and icon builder are pinned rather than
+  installed ad hoc. The app itself is still just files.
+
+## About the smoke test
+
+`npm test` boots the app in a real browser and checks the shell: it loads with
+one view active, tabs switch, the install sheet opens and closes on Escape,
+the service worker activates, bottom content clears the tab bar, and saved
+state survives corrupt, future-version and wrong-shaped data.
+
+It does **not** test your app's logic — add those cases at the marked point in
+`test/smoke.mjs`.
+
+One rule if you extend it: **every assertion must be able to fail.** The first
+draft of this file asserted that the tab bar's bottom edge equalled the
+viewport height, which for a `position: fixed; bottom: 0` element is true by
+construction no matter what is broken. It looked like a geometry check and
+could never fail. Before you add an assertion, break the thing it covers and
+watch it go red.

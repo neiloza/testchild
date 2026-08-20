@@ -3,10 +3,11 @@
 Derived by reading five shipped apps end to end: **Liberty**, **Forest**,
 **SlotMachine** (Lucky Gold Slots), **Popcorn**, and **Clash of History**.
 
-Everything in Part 1 is a rule because *all five* apps do it. Part 2 is the
-starter kit that makes following Part 1 nearly free. Part 3 is the list of
-things **3–4 of the 5** apps do — those are flagged, not codified, and are
-yours to rule on.
+Part 1 is the rule set: almost all of it is a rule because *all five* apps
+already do it, plus two additions made by decision and marked as such. Part 2
+is the starter kit that makes following Part 1 nearly free. Part 3 is the
+review queue — the things **3–4 of the 5** apps do — with what was decided
+about each and what is still open.
 
 The shape being described is consistent enough to name: **an installable,
 offline-capable, phone-first web app, with no tracking and no monetisation,
@@ -16,7 +17,12 @@ that; the differences are stack, not philosophy.
 
 ---
 
-## Part 1 — The rules (all five apps do this)
+## Part 1 — The rules
+
+Rules 1–11 and 13 are rules because *all five* apps already do them. Rules 10b
+and 12 were added by decision on 2026-08-20 — they are marked as such, and
+they are the only two that are not simply a description of what you already
+build.
 
 ### 1. It is a PWA, and installability is a feature, not a checkbox
 
@@ -188,9 +194,18 @@ anti-screen-time app. Liberty is civic infrastructure. Build accordingly.
   the browser.
 
 > **Corollary rule:** if a new app does not need a server or a database, it
-> gets no `package.json`. Reach for Next.js only when there is a real backend
-> (Liberty: Postgres + ingestion) and Vite+React only when there is real
-> client state to manage (Clash: a game engine).
+> gets no *runtime* dependencies and no build step. Reach for Next.js only
+> when there is a real backend (Liberty: Postgres + ingestion) and Vite+React
+> only when there is real client state to manage (Clash: a game engine).
+
+**Refined 2026-08-20.** The original form of this rule was "no `package.json`
+at all", which is what the three static apps do. That was tightened after it
+collided with the test decision below: a `package.json` carrying *only*
+`devDependencies` adds no runtime dependency, ships nothing to the browser,
+and introduces no build step — and it pins the test runner and the icon
+builder instead of leaving them to an ad-hoc `npm i -D` that silently stops
+working a year later (Forest's `build-icons.js` has exactly that problem
+today). The rule is therefore **no runtime dependencies**, not no manifest.
 
 ### 9. Pure functions at the edges, so the fiddly bits are testable
 
@@ -232,6 +247,29 @@ not be here:
 Rule of thumb: **if a future session could plausibly "clean this up" and
 reintroduce a bug, write the paragraph.**
 
+### 10b. The accessibility floor — settled 2026-08-20
+
+Promoted from the review queue. Three things every app gets:
+
+- **`prefers-reduced-motion`.** The house pattern is Forest's inverted form —
+  put animation inside `@media (prefers-reduced-motion: no-preference)` so
+  motion is opt-in. The kit ships the blanket kill-switch instead, because
+  that is the form that retrofits safely onto code that already animates.
+- **`:focus-visible`.** Liberty's version: a 2px outline with
+  `outline-offset`, applied through `:where(…)` so specificity stays at zero
+  and any component can still override it.
+- **`@media (hover: hover)` around every hover rule.** Adopted despite being
+  1-of-5, because the bug it prevents would hit any of the others: on iOS
+  Safari `:hover` sticks to the last-tapped element, so the next element
+  rendered into that slot inherits a highlight it never earned. Keeping every
+  hover rule in one guarded block makes it structurally impossible rather
+  than something to remember.
+
+`user-select` stays conditional rather than universal: apps you tap turn it
+off with inputs and long-form text opting back in; apps you read leave it on.
+Fonts default to the system stack, with `--font-display` as the one hook —
+reach for a webfont only when the typeface is doing identity work.
+
 ### 11. Every app carries its own operating manual
 
 `README.md` for the mission and the architecture; `CLAUDE.md` for *where
@@ -239,13 +277,49 @@ development actually stands*. The split is stated explicitly at the top of
 Popcorn's: "Read README.md first for the app's mission — this file tracks
 where development actually stands."
 
+Both files are required as of 2026-08-20 (SlotMachine, which has neither, is
+the gap to close). The kit ships a template for each.
+
 `CLAUDE.md` reliably contains: a file map, invariants ("do not break these"),
 conventions, testing notes, deploy notes, known gaps, and next steps ordered
 by leverage. Liberty adds the best idea in the set — a **"Waiting on a human"**
 checklist of everything blocked on a credential, a download, or a judgement
 call that an agent cannot do from a sandbox.
 
-### 12. One apex domain, one subdomain per app
+### 12. A committed smoke test — added 2026-08-20
+
+Every app gets `test/smoke.mjs` and `npm test`. This is the one rule here that
+none of the five apps followed; it was added because the gap was the clearest
+finding of the whole review. The three static apps have no test of any kind,
+and Popcorn's own notes admit the recommendation engine has "no regression
+safety net."
+
+The bar is deliberately low and deliberately fixed. The smoke test does not
+test app logic — it tests that **the shell still works**: the app boots, one
+view is active, tabs switch, the sheet opens and closes on Escape, the worker
+activates, saved state survives corrupt and future-version and
+wrong-shaped data, and nothing throws. Those are what break when you touch CSS
+or move a file, and they are exactly what nobody thinks to re-check by hand.
+
+Two properties it must keep:
+
+- **It serves the app itself on a random port**, so there is nothing to start
+  first and no port to collide with.
+- **Every assertion must be able to fail.** The first draft asserted that the
+  tab bar's bottom edge equalled the viewport height — which, for a
+  `position: fixed; bottom: 0` element, is true by construction whatever else
+  is broken. It read like a geometry test and could never fail. It was
+  replaced with one that makes the page tall, scrolls to the bottom, and
+  checks the last line of content clears the bar. **An assertion that cannot
+  fail is worse than no assertion, because it buys confidence it has not
+  earned.**
+
+Verified against five deliberately introduced regressions: a container losing
+its bottom padding, the store losing its corrupt-JSON guard, a tab switch
+leaving the old view active, a deleted `--safe-b` token, and a broken service
+worker path. All five fail loudly and exit non-zero.
+
+### 13. One apex domain, one subdomain per app
 
 `forest.`, `popcorn.`, `slotmachine.`, `clashofhistory.`, `liberty.` — all on
 `thewizardofoza.com`, DNS at the registrar (Hostinger), each app CNAME'd to
@@ -280,19 +354,24 @@ starter-kit/
   js/ui.js                view switching, sheets, toasts, tab wiring
   js/app.js               where your app actually starts
   icons/build-icons.js    one SVG in → full icon set out
+  test/smoke.mjs          shell regression test; serves the app itself
+  package.json            dev-only — pins the test runner and icon builder
   scripts/new-app.sh      scaffold a renamed copy in one command
+  README.md.template      mission + architecture skeleton
   CLAUDE.md.template      the operating-manual skeleton
 ```
 
 **To start a new app:**
 
 ```bash
-starter-kit/scripts/new-app.sh ../myapp "My App" "myapp" "#RRGGBB"
+starter-kit/scripts/new-app.sh ../myapp "My App" myapp "#RRGGBB"
+cd ../myapp && npm install && npm test
 ```
 
 That copies the kit, rewrites the app name / short name / storage namespace /
-theme colour everywhere they appear, and leaves you with something that
-already installs to a home screen and works offline.
+theme colour everywhere they appear, promotes both doc templates into real
+files, and leaves you with something that already installs to a home screen,
+works offline, and passes 22 shell checks before you have written a line.
 
 The three highest-leverage pieces, in order:
 
@@ -309,10 +388,43 @@ The three highest-leverage pieces, in order:
 
 ---
 
-## Part 3 — Flagged for your review (in 3–4 apps, not all 5)
+## Part 3 — The review queue
 
-These are real patterns but not yet universal. Listed with who does and who
-doesn't, and what I'd suggest — **none of these have been treated as rules.**
+Patterns found in three or four of the five apps, not all. Listed with who
+does and who doesn't.
+
+### Decided 2026-08-20
+
+| Item | Decision |
+|---|---|
+| `prefers-reduced-motion` | **Adopted** — now rule 10b |
+| `:focus-visible` | **Adopted** — now rule 10b |
+| `@media (hover: hover)` guard | **Adopted** — now rule 10b |
+| `README.md` + `CLAUDE.md` | **Adopted** — now rule 11, both templates ship |
+| `user-select` | **Conditional** — tap apps off, reading apps on |
+| Webfonts | **System stack by default**, webfont only for identity work |
+| Install-prompt UI | **Ships by default** in the kit; delete the button per app |
+| Service-worker strategy | **Network-first** is the house default |
+| ES modules vs script tags | **ES modules** — no build step, must be served over http |
+| Error visibility | **Committed smoke test** — now rule 12. No telemetry adopted |
+
+### Still open
+
+**Should Clash get a service worker?** It ships a manifest and full install
+support but no worker, so it is installable and not offline-capable. This is
+a question about an existing app rather than about the kit, so it was left out
+of the kit decisions.
+
+**Is there a middle path on telemetry?** The smoke test closes the CI half of
+the feedback gap. The field half is still open: a crash on some Android WebView
+is invisible forever, and you cannot tell a broken feature from an unused one.
+A self-hosted, no-cookie, no-identifier error endpoint would violate none of
+the stated principles. Deliberately not adopted — noting it so the decision
+stays a decision rather than an oversight.
+
+---
+
+The original review notes follow, kept for the reasoning behind each call.
 
 ### 3a. `prefers-reduced-motion` — 4 of 5
 
@@ -439,5 +551,7 @@ newly rendered card in the same slot inherits the highlight. Popcorn keeps
 [ ] messy platform logic behind a pure function over a snapshot
 [ ] comments explain why; write the paragraph if a cleanup could regress it
 [ ] README.md (mission + architecture) and CLAUDE.md (state of play)
+[ ] prefers-reduced-motion, :focus-visible, hover rules behind (hover: hover)
+[ ] npm test green — and every assertion in it can actually fail
 [ ] one subdomain, one CNAME, nameservers untouched
 ```

@@ -35,12 +35,14 @@ mkdir -p "$DEST"
 (cd "$KIT" && tar --exclude='scripts/new-app.sh' -cf - .) | (cd "$DEST" && tar -xf -)
 rmdir "$DEST/scripts" 2>/dev/null || true
 
-# CLAUDE.md.template becomes the real CLAUDE.md.
-if [ -f "$DEST/CLAUDE.md.template" ]; then
-  mv "$DEST/CLAUDE.md.template" "$DEST/CLAUDE.md"
-fi
-# The kit's own README describes the kit, not the new app.
+# The kit's own README describes the kit, not the new app — drop it, then
+# promote the two templates into the real files.
 rm -f "$DEST/README.md"
+for t in CLAUDE README; do
+  if [ -f "$DEST/$t.md.template" ]; then
+    mv "$DEST/$t.md.template" "$DEST/$t.md"
+  fi
+done
 
 subst() {
   # macOS and GNU sed disagree about -i; write to a temp file instead.
@@ -61,20 +63,23 @@ subst() {
 while IFS= read -r -d '' f; do
   subst "$f"
 done < <(find "$DEST" -type f \
-  \( -name '*.html' -o -name '*.css' -o -name '*.js' -o -name '*.webmanifest' -o -name '*.md' \) -print0)
+  \( -name '*.html' -o -name '*.css' -o -name '*.js' -o -name '*.mjs' \
+     -o -name '*.webmanifest' -o -name '*.json' -o -name '*.md' \) -print0)
 
 cat <<DONE
 
   $APP_NAME scaffolded in $DEST
 
   Next:
-    1. icons/source.svg      — draw the mark, then: node icons/build-icons.js
-    2. css/tokens.css        — the palette. This is the file you retheme.
-    3. manifest.webmanifest  — fill the TODO tagline/description, pick categories
-    4. index.html            — the TODO description, and the real tabs
-    5. CLAUDE.md             — fill in the file map and the invariants
+    1. npm install           — dev tools only; nothing ships to the browser
+    2. icons/source.svg      — draw the mark, then: npm run icons
+    3. css/tokens.css        — the palette. This is the file you retheme.
+    4. manifest.webmanifest  — fill the TODO tagline/description, pick categories
+    5. index.html            — the TODO description, and the real tabs
+    6. README.md / CLAUDE.md — the mission, then the file map and invariants
 
-  Serve it:  python3 -m http.server 8000 --directory $DEST
+  Serve it:  cd $DEST && npm run serve
+  Test it:   cd $DEST && npm test
 
   Deploy: Cloudflare Pages, framework preset None, build command empty,
   output directory /. Then one CNAME for $APP_SLUG.<your-domain> at the
