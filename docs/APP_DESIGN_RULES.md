@@ -295,9 +295,58 @@ the gap to close). The kit ships a template for each.
 
 `CLAUDE.md` reliably contains: a file map, invariants ("do not break these"),
 conventions, testing notes, deploy notes, known gaps, and next steps ordered
-by leverage. Liberty adds the best idea in the set — a **"Waiting on a human"**
-checklist of everything blocked on a credential, a download, or a judgement
-call that an agent cannot do from a sandbox.
+by leverage. It also carries the **"Waiting on a human"** list — see rule 11b,
+which it earned on its own.
+
+### 11b. "Waiting on a human" — required in every project, 2026-08-20
+
+Every `CLAUDE.md` carries a **Waiting on a human** section. It was Liberty's
+idea and only Liberty had it; it is now required everywhere, because it is the
+best idea in the set and the only one that addresses the actual bottleneck.
+
+**The entry test, which is also the whole rule:**
+
+> Everything here is blocked on something an agent cannot do from a sandbox: a
+> credential, a file that needs downloading, a judgement call, or a check
+> against the real world. **Nothing in this list is waiting on code.**
+
+If a capable agent with the repo and no outside access could finish it, it does
+not belong here — it belongs in "What to do next". That separation is the
+point. Mixing the two makes both lists ignorable: the agent cannot act on half
+of one, and the human cannot find their half in the other.
+
+**Why it matters more than it looks.** In this way of working the scarce
+resource is not code — an agent produces that quickly and cheaply. It is the
+handful of things only a person can do: a key that exists only behind a login,
+a file behind a network the sandbox cannot reach, a taste decision, a device in
+a pocket. Those are what projects actually stall on, and without a dedicated
+list they scatter through prose where nobody assembles them. This section is
+the interface between the two kinds of work, and it is the page to read when
+you have twenty minutes and want to unblock the most.
+
+**Each entry carries five things**, because a bare "set up hosting" rots within
+a month once the context behind it is gone:
+
+1. A bold one-line summary of the action.
+2. What it unlocks, or what stays broken without it.
+3. Why an agent cannot do it — no credential, no network, needs a device,
+   needs a decision.
+4. The exact commands or clicks, so it is executable without re-derivation.
+5. Any trap that silently produces a wrong result rather than an error.
+
+Ordered by leverage. Recurring items are marked and never ticked off. An entry
+is deleted when it is genuinely done — a ticked box that is not true is worse
+than an open one.
+
+The kit's `CLAUDE.md.template` ships this section **pre-filled**, not as an
+empty stub, because a freshly scaffolded app really is blocked on three things:
+creating the hosting project and CNAME, replacing the placeholder icon, and
+installing it on a real phone. That last one is permanent and unavoidable —
+the smoke test drives a desktop Chromium where `env(safe-area-inset-*)` is
+zero, so notch and home-indicator bugs are invisible to it, and the iOS
+Share → Add to Home Screen gesture cannot be exercised headlessly at all, so
+the whole `ios-instructions` branch stays unverified until a person walks
+through it on a device.
 
 ### 12. A committed smoke test — added 2026-08-20
 
@@ -575,6 +624,7 @@ newly rendered card in the same slot inherits the highlight. Popcorn keeps
 [ ] messy platform logic behind a pure function over a snapshot
 [ ] comments explain why; write the paragraph if a cleanup could regress it
 [ ] README.md (mission + architecture) and CLAUDE.md (state of play)
+[ ] CLAUDE.md has a "Waiting on a human" list — and nothing on it needs code
 [ ] prefers-reduced-motion, :focus-visible, hover rules behind (hover: hover)
 [ ] npm test green — and every assertion in it can actually fail
 [ ] one subdomain, one CNAME, nameservers untouched

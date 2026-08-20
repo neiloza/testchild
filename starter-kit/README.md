@@ -55,6 +55,10 @@ offline out of the box.
 4. **`index.html`** — the description meta, and your real tabs.
 5. **`js/store.js`** — `defaultState()` is the shape of a brand-new user.
 6. **`CLAUDE.md`** — file map and invariants, while you still remember them.
+   Its **Waiting on a human** section ships pre-filled with the three things a
+   new app is genuinely blocked on. Work them off; do not delete the section.
+   Nothing on that list may be something an agent could do — if it is, it
+   belongs under "What to do next" instead.
 
 ## Things the kit decides for you, and where to change them
 

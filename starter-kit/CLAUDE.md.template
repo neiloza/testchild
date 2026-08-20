@@ -26,12 +26,85 @@ This file is for sessions picking up work on __APP_NAME__. Read
 
 ## Waiting on a human
 
-<!-- Everything blocked on something an agent cannot do from a sandbox: a
-     credential, a file that needs downloading, a judgement call, a check
-     against the real world. Nothing in this list is waiting on code.
-     This section is the single highest-value part of the file. -->
+**Everything here is blocked on something an agent cannot do from a sandbox: a
+credential, a file that needs downloading, a judgement call, or a check against
+the real world. Nothing in this list is waiting on code.**
 
-- [ ]
+That sentence is the entry test. If a capable agent with this repo and no
+outside access could finish it, it does not belong here — it belongs in "What
+to do next". Mixing the two is what makes both lists ignorable: the agent
+cannot act on half of one, and the human cannot find their half in the other.
+
+Ordered by leverage: the top unlocks the most for the least effort. Mark
+anything recurring, and never tick those off.
+
+**How to write an entry.** A bare line like "set up hosting" rots within a
+month, because the person reading it six weeks from now has lost the context
+you have right now. Each entry carries:
+
+1. A **bold one-line summary** of the action.
+2. **What it unlocks, or what stays broken without it** — the reason this is
+   worth a human's attention rather than a note.
+3. **Why an agent cannot do it** — no credential, no network, needs a device,
+   needs a decision.
+4. **The exact commands or clicks**, so it is executable without re-derivation.
+5. **Any trap** that silently produces a wrong result rather than an error.
+
+Delete an entry when it is genuinely done, not when it is half done. A ticked
+box that is not true is worse than an open one.
+
+<!-- The three below are real: a freshly scaffolded app is blocked on all of
+     them. Delete each as you complete it. -->
+
+- [ ] **Create the hosting project and point the subdomain at it.** Until this
+      exists there is no URL, so nothing here can be installed to a phone or
+      tested on a real device — which blocks the iPhone check below.
+      Needs dashboard and registrar logins that an agent has no access to.
+      1. Cloudflare dashboard → **Workers & Pages → Create → Pages → Connect to
+         Git** → pick this repo.
+      2. Framework preset **None**, build command **empty**, output directory
+         **`/`**. This repo has no build step; all three are deliberately "do
+         nothing".
+      3. Note the `*.pages.dev` hostname it assigns.
+      4. At the registrar, add a CNAME for `__APP_SLUG__` pointing at that
+         hostname.
+      Do not move the domain's nameservers. Other apps share this domain, and
+      adding a subdomain must stay a single CNAME that touches nothing else.
+
+- [ ] **Replace the placeholder icon.** The kit ships a generic star. It works
+      and installs correctly, so nothing will fail or warn — it will just be
+      the wrong mark on the home screen, indefinitely.
+      Needs a designed mark, which is a judgement call rather than a task.
+      1. Draw it as a 512×512 SVG in `icons/source.svg`, full-bleed and opaque,
+         with everything meaningful inside the centre 80% so a circular
+         maskable crop cannot clip it.
+      2. `npm run icons`
+      Never hand-edit a PNG — the builder byte-verifies opacity and will refuse
+      art that would land on a home screen see-through, and a hand-edited file
+      bypasses that check entirely.
+
+- [ ] **Install it on a real iPhone and a real Android phone, and use it.**
+      This is the one thing no test can cover. The smoke test drives a desktop
+      Chromium with a phone-sized viewport: `env(safe-area-inset-*)` is zero
+      there, so notch and home-indicator bugs are invisible; and the iOS
+      "Share → Add to Home Screen" gesture cannot be exercised headlessly at
+      all, so the entire `ios-instructions` branch of `js/install.js` is
+      unverified until a person follows it.
+      1. Open the deployed URL in Safari on an iPhone, follow the app's own
+         install instructions, and check the sheet's wording matches what
+         Safari actually shows.
+      2. Launch from the home-screen icon. Confirm no address bar, the status
+         bar tint matches the app, and nothing hides under the notch or the
+         home indicator.
+      3. Repeat on Android in Chrome, where the install is a real dialog.
+      4. Add data, force-quit, reopen. Confirm it survived.
+      Do this before telling anyone about the app, not after.
+
+- [ ] *(recurring — never tick)* **Re-read this list when you pick the project
+      back up.** Entries go stale silently: a credential gets created, a
+      decision gets made in your head, a step gets done on a phone and never
+      recorded. An out-of-date blocker list sends the next session chasing work
+      that is already finished.
 
 ## File map
 
