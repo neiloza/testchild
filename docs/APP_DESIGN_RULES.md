@@ -373,6 +373,17 @@ theme colour everywhere they appear, promotes both doc templates into real
 files, and leaves you with something that already installs to a home screen,
 works offline, and passes 22 shell checks before you have written a line.
 
+`new-app.sh` substitutes through node rather than `sed`, and verifies its own
+output — parsing the generated manifest and `package.json` and syntax-checking
+every JS file, then deleting the directory if anything fails. Both came out of
+bugs found by trying awkward app names: `sed`'s replacement is not literal, so
+*Fish & Chips* became *Fish __APP_NAME__ Chips* and a `|` killed the script;
+and a name is a different string in each destination, so `Say "Hi"` produced an
+invalid manifest — which browsers ignore **silently**, leaving the app
+uninstallable with nothing on the console to explain it. Values are now escaped
+per destination syntax, and the same verify-don't-trust reflex as
+`build-icons.js` catches it if that ever regresses.
+
 The three highest-leverage pieces, in order:
 
 1. **`js/install.js`** — Liberty and Popcorn independently reimplemented the

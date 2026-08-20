@@ -80,3 +80,7 @@ Cloudflare Pages → `__APP_SLUG__.<domain>`.
 
 Then one CNAME at the registrar pointing the subdomain at the `*.pages.dev`
 hostname. Nameservers do not move, so nothing else on the domain is touched.
+
+Everything at the repo root gets published, `test/` and `package.json`
+included. That is harmless — they are dev-only, the browser never loads them,
+and `sw.js` does not cache them — but it is worth knowing they are reachable.

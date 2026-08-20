@@ -44,27 +44,119 @@ for t in CLAUDE README; do
   fi
 done
 
-subst() {
-  # macOS and GNU sed disagree about -i; write to a temp file instead.
-  local f="$1"
-  local tmp
-  tmp="$(mktemp)"
-  sed \
-    -e "s|__APP_NAME__|${APP_NAME}|g" \
-    -e "s|__APP_SHORT_NAME__|${APP_SHORT}|g" \
-    -e "s|__APP_SLUG__|${APP_SLUG}|g" \
-    -e "s|__THEME_COLOR__|${THEME_COLOR}|g" \
-    -e "s|__APP_TAGLINE__|TODO: one line, what it is|g" \
-    -e "s|__APP_DESCRIPTION__|TODO: one sentence, what it does for you|g" \
-    "$f" > "$tmp"
-  mv "$tmp" "$f"
+# Substitution runs through node, NOT sed, and that is deliberate.
+#
+# sed's replacement text is not literal: `&` expands to the whole match, `\`
+# escapes, and the delimiter (whatever you pick) terminates the expression. So
+# an app called "Fish & Chips" came out as "Fish __APP_NAME__ Chips", a name
+# containing a backslash silently lost it, and one containing the delimiter
+# killed the script outright. All three were real, all three were found by
+# trying them.
+#
+# Escaping the replacement by hand would fix it and would be exactly the kind
+# of fiddly, untestable string juggling this codebase avoids elsewhere.
+# node's split/join has no pattern semantics at all — every byte is literal —
+# so the whole class of bug stops existing. node is already required by
+# `npm test` and `npm run icons`, so this adds no new tool.
+if ! command -v node >/dev/null 2>&1; then
+  echo "error: node is required to scaffold (it does the literal text substitution)." >&2
+  exit 1
+fi
+
+node - "$DEST" \
+  __APP_NAME__         "$APP_NAME" \
+  __APP_SHORT_NAME__   "$APP_SHORT" \
+  __APP_SLUG__         "$APP_SLUG" \
+  __THEME_COLOR__      "$THEME_COLOR" \
+  __APP_TAGLINE__      "TODO: one line, what it is" \
+  __APP_DESCRIPTION__  "TODO: one sentence, what it does for you" <<'NODE'
+const fs = require("fs");
+const path = require("path");
+
+const [dest, ...rest] = process.argv.slice(2);
+const pairs = [];
+for (let i = 0; i < rest.length; i += 2) pairs.push([rest[i], rest[i + 1]]);
+
+const EXTS = new Set([".html", ".css", ".js", ".mjs", ".webmanifest", ".json", ".md"]);
+
+/*
+ * A name is not one string — it is a different string in each destination.
+ * `Say "Hi"` dropped verbatim into manifest.webmanifest produces invalid JSON,
+ * and into install.js produces invalid JavaScript. Both fail SILENTLY: an
+ * unparseable manifest is ignored by the browser, so the app simply stops
+ * being installable with nothing on the console to say why. That is the worst
+ * kind of bug this scaffolder could ship, so the value is escaped for the
+ * syntax it is landing in.
+ */
+const escapers = {
+  // JSON string body — also correct for a JS string literal.
+  json: (v) => JSON.stringify(v).slice(1, -1),
+  // Text content and double-quoted attribute values are both safe with these.
+  html: (v) => v.replace(/&/g, "&amp;").replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;").replace(/"/g, "&quot;"),
+  raw: (v) => v,
+};
+
+function escaperFor(ext) {
+  if (ext === ".json" || ext === ".webmanifest" || ext === ".js" || ext === ".mjs") return escapers.json;
+  if (ext === ".html") return escapers.html;
+  return escapers.raw;   // .md, .css — prose and stylesheets take it literally
 }
 
-while IFS= read -r -d '' f; do
-  subst "$f"
-done < <(find "$DEST" -type f \
-  \( -name '*.html' -o -name '*.css' -o -name '*.js' -o -name '*.mjs' \
-     -o -name '*.webmanifest' -o -name '*.json' -o -name '*.md' \) -print0)
+function walk(dir) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) { walk(full); continue; }
+    const ext = path.extname(entry.name);
+    if (!EXTS.has(ext)) continue;
+    const escape = escaperFor(ext);
+    let text = fs.readFileSync(full, "utf8");
+    // split/join, not replace(): every byte of the replacement is literal.
+    for (const [token, value] of pairs) text = text.split(token).join(escape(value));
+    fs.writeFileSync(full, text);
+  }
+}
+walk(dest);
+
+/*
+ * Verify the output rather than trusting it — the same reasoning as
+ * build-icons.js byte-checking that a PNG came out opaque. Escaping is easy to
+ * get subtly wrong and the failures are invisible, so parse what was actually
+ * written and refuse to hand over a broken scaffold.
+ */
+const problems = [];
+for (const rel of ["manifest.webmanifest", "package.json"]) {
+  const full = path.join(dest, rel);
+  if (!fs.existsSync(full)) continue;
+  try { JSON.parse(fs.readFileSync(full, "utf8")); }
+  catch (err) { problems.push(`${rel}: ${err.message}`); }
+}
+/*
+ * `node --check`, not vm.Script. The kit's js/ is ES modules, and vm.Script
+ * parses its input as a classic script — so `export` is a SyntaxError there no
+ * matter what the app is called, which made the first version of this check
+ * reject every scaffold including "Aquarium". `--check` resolves the parse
+ * goal the same way the runtime does, honouring "type": "module" in the
+ * package.json just written above.
+ */
+const { spawnSync } = require("child_process");
+for (const rel of ["js/app.js", "js/install.js", "js/store.js", "js/ui.js", "sw.js"]) {
+  const full = path.join(dest, rel);
+  if (!fs.existsSync(full)) continue;
+  const res = spawnSync(process.execPath, ["--check", full], { encoding: "utf8" });
+  if (res.status !== 0) {
+    const line = (res.stderr || "").split("\n").find((l) => /Error/.test(l)) || "did not parse";
+    problems.push(`${rel}: ${line.trim()}`);
+  }
+}
+if (problems.length) {
+  console.error("\nScaffold produced files that do not parse:\n" +
+    problems.map((p) => "  " + p).join("\n") +
+    "\n\nThis is a bug in new-app.sh, not in your app name. Nothing was left behind.");
+  fs.rmSync(dest, { recursive: true, force: true });
+  process.exit(1);
+}
+NODE
 
 cat <<DONE
 

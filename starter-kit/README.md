@@ -76,6 +76,26 @@ offline out of the box.
   it exists so the test runner and icon builder are pinned rather than
   installed ad hoc. The app itself is still just files.
 
+## About the scaffolder
+
+`new-app.sh` substitutes through **node, not sed**, and verifies its own
+output before handing the directory over — it parses the generated
+`manifest.webmanifest` and `package.json` and syntax-checks every JS file. If
+anything fails to parse it prints why and removes the directory rather than
+leaving you a broken scaffold.
+
+Both behaviours exist because of bugs found by trying awkward names. `sed`'s
+replacement is not literal (`&` means "the whole match"), so *Fish & Chips*
+came out as *Fish __APP_NAME__ Chips*; a `|` killed the script outright. And a
+name is a different string in each destination — `Say "Hi"` dropped verbatim
+into the manifest produces invalid JSON, which browsers ignore silently, so
+the app simply stops being installable with nothing on the console to say why.
+Values are now escaped for the syntax they land in: HTML entities in
+`index.html`, backslash escapes in JSON and JS, literal in Markdown.
+
+Names verified end to end: ampersands, quotes, backslashes, angle brackets,
+apostrophes, em dashes and emoji.
+
 ## About the smoke test
 
 `npm test` boots the app in a real browser and checks the shell: it loads with
