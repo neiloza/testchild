@@ -217,6 +217,11 @@ const state = await page.evaluate(async () => {
   const dump = s.exportState({ ...s.loadState(), settings: { sound: false } });
   out.exportImports = s.importState(dump)?.settings.sound === false;
   out.rejectsForeignExport = s.importState('{"app":"other","v":1,"state":{"v":1}}') === null;
+
+  // Must resolve rather than throw on every browser, including ones with no
+  // Storage API at all — it is called unawaited at boot, so a rejection there
+  // would surface as an unhandled promise rejection.
+  out.persistenceResolves = typeof (await s.requestPersistence()) === "boolean";
   return out;
 }).catch((err) => {
   // A store that throws is the exact failure these cases exist to catch, so
@@ -232,6 +237,7 @@ check("survives a future version", state.survivesFutureVersion);
 check("survives an unrecognised shape", state.survivesGarbageShape);
 check("export round-trips", state.exportImports);
 check("rejects another app's export", state.rejectsForeignExport);
+check("persistence request resolves, never throws", state.persistenceResolves);
 
 /* ------------------------------------------------------------------------
  * Add app-specific cases below.

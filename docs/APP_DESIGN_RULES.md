@@ -147,6 +147,19 @@ around access, reads fall back to a default, writes silently no-op. Clash's
 `storage.ts` explains it: a disabled store (private mode), a quota error, or
 corrupt data must never be able to crash the app.
 
+**Two additions, 2026-08-20.** Neither existed in any of the five apps.
+
+- **Call `navigator.storage.persist()` at boot.** It asks the browser not to
+  evict the origin under storage pressure. Chrome usually grants it to an
+  installed PWA unasked, but usually is not a guarantee.
+- **Ship export and import.** This is the one that matters. Installing helps
+  on iOS, where a PWA gets its own container that survives clearing Safari's
+  history and is exempt from the 7-day eviction rule. It helps much less on
+  Android, where an installed PWA shares origin storage with Chrome and
+  "clear cookies and site data" takes it. And neither survives a lost phone or
+  a new device. `persist()` is a floor; a downloadable backup is the safety
+  net, and the floor is not a reason to skip the net.
+
 ### 6. Works offline, updates itself
 
 Service worker, network-first for same-origin GETs, falling back to cache,

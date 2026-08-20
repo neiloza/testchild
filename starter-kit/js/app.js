@@ -8,7 +8,7 @@
 
 import { initTabs, initSheets, toast } from "./ui.js";
 import { initInstall } from "./install.js";
-import { loadState, saveState } from "./store.js";
+import { loadState, saveState, requestPersistence } from "./store.js";
 
 const state = loadState();
 
@@ -17,6 +17,10 @@ function persist() {
 }
 
 function boot() {
+  // Ask to be exempt from automatic eviction. Fire-and-forget: the answer
+  // changes nothing we do, and there is no fallback to run if it is "no".
+  requestPersistence();
+
   initTabs("home");
   initSheets();
   initInstall({

@@ -106,6 +106,38 @@ export function saveState(state) {
   writeString(STORAGE_KEY, JSON.stringify(state));
 }
 
+/* ---------------------------------------------------------------------------
+ * Ask the browser not to evict this data.
+ *
+ * What this does and does not buy you, because the difference matters:
+ *
+ *   DOES  — exempt the origin from automatic eviction when the device is
+ *           short on space. Chrome generally grants this to an installed PWA
+ *           without being asked, but "generally" is not a guarantee and
+ *           asking costs three lines.
+ *
+ *   DOES NOT — survive a user deliberately clearing site data. On iOS an
+ *           installed app has its own container, so clearing Safari's history
+ *           leaves it alone; on Android an installed PWA shares origin
+ *           storage with Chrome, so "clear cookies and site data" takes it.
+ *           Nothing here changes that.
+ *
+ *   DOES NOT — survive deleting the app, switching phones, or losing the
+ *           device.
+ *
+ * So this is a floor, not a safety net. The safety net is exportState() below,
+ * and this function existing is not a reason to skip it.
+ * ------------------------------------------------------------------------- */
+export async function requestPersistence() {
+  if (typeof navigator === "undefined" || !navigator.storage?.persist) return false;
+  try {
+    if (await navigator.storage.persisted?.()) return true;
+    return await navigator.storage.persist();
+  } catch {
+    return false;  // unsupported or blocked — nothing to do about it
+  }
+}
+
 /* Export/import, so taste/progress data survives a device switch or a cache
  * clear. A local-first app with no export is one "clear browsing data" away
  * from losing everything the user built — worth the twenty lines. */
