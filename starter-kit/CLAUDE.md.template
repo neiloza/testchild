@@ -122,7 +122,7 @@ box that is not true is worse than an open one.
 | `js/install.js` | Add-to-home-screen decision table + sheet |
 | `js/ui.js` | View switching, sheets, toasts |
 | `sw.js` | Service worker (network-first) |
-| `icons/build-icons.js` | One SVG in, the full icon set out |
+| `icons/build-icons.cjs` | One SVG in, the full icon set out |
 
 ## Invariants — do not break these
 
@@ -134,7 +134,7 @@ box that is not true is worse than an open one.
   strands anyone who has not opened the app since — which, with no backup,
   means losing their data permanently.
 - **Icons are generated, never hand-edited.** Change `icons/source.svg` and
-  re-run `node icons/build-icons.js`. The builder byte-verifies that every
+  re-run `node icons/build-icons.cjs`. The builder byte-verifies that every
   PNG came out fully opaque and refuses to write one that did not — an icon
   with alpha reaches a home screen as a clipped mark or a see-through tile.
   *(If the icons are still the kit's placeholder star, that is the first job.)*

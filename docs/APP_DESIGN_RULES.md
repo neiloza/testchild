@@ -415,7 +415,7 @@ starter-kit/
   js/install.js           the install-prompt table, portable, app-name-driven
   js/ui.js                view switching, sheets, toasts, tab wiring
   js/app.js               where your app actually starts
-  icons/build-icons.js    one SVG in → full icon set out
+  icons/build-icons.cjs    one SVG in → full icon set out
   test/smoke.mjs          shell regression test; serves the app itself
   package.json            dev-only — pins the test runner and icon builder
   scripts/new-app.sh      scaffold a renamed copy in one command
@@ -444,7 +444,7 @@ and a name is a different string in each destination, so `Say "Hi"` produced an
 invalid manifest — which browsers ignore **silently**, leaving the app
 uninstallable with nothing on the console to explain it. Values are now escaped
 per destination syntax, and the same verify-don't-trust reflex as
-`build-icons.js` catches it if that ever regresses.
+`build-icons.cjs` catches it if that ever regresses.
 
 The three highest-leverage pieces, in order:
 
@@ -455,7 +455,7 @@ The three highest-leverage pieces, in order:
    is now written once, driven by config, and never needs writing again.
 2. **`css/tokens.css` + `css/base.css`** — everything in rule §2 and §4 that
    cost Forest and Liberty real debugging time is already correct here.
-3. **`icons/build-icons.js`** — generalised from Forest's. Point it at one
+3. **`icons/build-icons.cjs`** — generalised from Forest's. Point it at one
    SVG and it emits the full opaque, full-bleed, maskable-inclusive set that
    Chrome and Android actually require.
 

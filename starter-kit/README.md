@@ -33,7 +33,7 @@ offline out of the box.
 | `js/install.js` | The add-to-home-screen decision table, portable |
 | `js/ui.js` | View switching, sheets, toasts |
 | `js/app.js` | Where your app actually starts |
-| `icons/build-icons.js` | One SVG in → the full icon set out |
+| `icons/build-icons.cjs` | One SVG in → the full icon set out |
 | `test/smoke.mjs` | Shell regression test — serves the app itself, no setup |
 | `package.json` | Dev-only. Pins the test runner and icon builder; no runtime deps |
 | `README.md.template` | Mission + architecture skeleton |
@@ -41,7 +41,7 @@ offline out of the box.
 
 ## Order of work on a new app
 
-1. **`icons/source.svg`** — draw the mark, then `node icons/build-icons.js`.
+1. **`icons/source.svg`** — draw the mark, then `node icons/build-icons.cjs`.
    The kit ships a **placeholder** icon set so a fresh scaffold has no 404s
    and installs correctly on day one. It is a generic star — replace it.
    Note the two rules in that script's header: everything full-bleed and

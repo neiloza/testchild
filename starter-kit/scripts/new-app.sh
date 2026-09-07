@@ -120,7 +120,7 @@ walk(dest);
 
 /*
  * Verify the output rather than trusting it — the same reasoning as
- * build-icons.js byte-checking that a PNG came out opaque. Escaping is easy to
+ * build-icons.cjs byte-checking that a PNG came out opaque. Escaping is easy to
  * get subtly wrong and the failures are invisible, so parse what was actually
  * written and refuse to hand over a broken scaffold.
  */

@@ -1,7 +1,16 @@
 /*
  * Icon builder — one source of truth for every launcher icon.
  *
- *   node icons/build-icons.js
+ *   node icons/build-icons.cjs      (or: npm run icons)
+ *
+ * NOTE THE .cjs EXTENSION, AND DO NOT RENAME IT BACK. This script is CommonJS
+ * — it uses require() — and package.json declares "type": "module", which the
+ * kit needs for the ES-module app code and the test runner. As build-icons.js
+ * it therefore died on its own first line with "require is not defined in ES
+ * module scope", so `npm run icons` failed on every app ever scaffolded from
+ * this kit and no icon was generated. The extension is what tells node how to
+ * parse the file; renaming it back means converting the whole file to import
+ * syntax first.
  *
  * Requires @resvg/resvg-js, dev-only, never shipped with the app:
  *   npm i -D @resvg/resvg-js      (or: npx --yes -p @resvg/resvg-js node icons/build-icons.js)
